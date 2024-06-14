@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "../lib/mpi.h"
+// #include "../lib/mpi.h"
+#include <mpi.h>
 
 /* Process information */
 int ProcessID, Processes;
@@ -51,7 +52,14 @@ int main(int argc, char* argv[]) {
   int Result = ParallelSearch(Array, 0, Size, Target);
 
   /* Printing out result */
-  if(ProcessID == 0) { printf("\nResult = %d\n\n", Result); }
+  if(ProcessID == 0) {
+    printf("\n>> Array:");
+    for(int index = 0; index < Size; index++) {
+      printf(" %d", Array[index]);
+    }
+    printf("\n>> Target: %d", Target);
+    printf("\n>> Result = %d\n\n", Result);
+  }
 
   /* Terminating parallel environment */
   MPI_Finalize();
