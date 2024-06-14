@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-// #include "../lib/mpi.h"
-#include <mpi.h>
+#include "../lib/mpi.h"
+// #include <mpi.h>
 
 /* Process information */
 int ProcessID, Processes;
@@ -10,17 +10,16 @@ int ProcessID, Processes;
 int ParallelSearch(int* Array, int Left, int Right, int Target) {
   if(Right - Left <= Processes) {
     int Result = 0;
-    if(Array[ProcessID] <= Target && Target <= Array[ProcessID + 1]) { Result = ProcessID; }
+    if(Array[ProcessID + Left] <= Target && Target < Array[ProcessID + Left + 1]) { Result = ProcessID; }
     MPI_Allreduce(&Result, &Result, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
     return Result;
   }
   else {
     int Tasks = Right - Left + 1;
     int quotient = Tasks / Processes, remainder = Tasks % Processes;
-    int Start = quotient * ProcessID + (ProcessID < remainder ? ProcessID : remainder);
-    int End = Start + (ProcessID < remainder ? quotient : quotient - 1);
-    Left = 0; Right = 0;
-    if(Array[Start] <= Target && Target <= Array[End]) { Left = Start; Right = End; }
+    Left = quotient * ProcessID + (ProcessID < remainder ? ProcessID : remainder);
+    Right = Left + (ProcessID < remainder ? quotient : quotient - 1);
+    if(!(Array[Left] <= Target && Target < Array[Right])) { Left = 0; Right = 0; }
     MPI_Allreduce(&Left, &Left, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
     MPI_Allreduce(&Right, &Right, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
     return ParallelSearch(Array, Left, Right, Target);
