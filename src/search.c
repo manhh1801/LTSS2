@@ -7,6 +7,30 @@
 int ProcessID, Processes;
 /*  */
 
+/* Quick sort */
+void swap(int* First, int* Second) {
+  int Temp = *First;
+  *First = *Second;
+  *Second = Temp;
+}
+
+void QuickSort(int* Array, int Left, int Right) {
+  int Pivot, Checkpoint;
+  if(Left < Right) {
+    Pivot = Array[Left];
+    Checkpoint = Left;
+    for(int index = Left + 1; index <= Right; index++) {
+      if(Array[index] < Pivot) {
+        swap(&Array[++Checkpoint], &Array[index]);
+      }
+    }
+    swap(&Array[Checkpoint], &Array[Left]);
+    QuickSort(Array, Left, Checkpoint - 1);
+    QuickSort(Array, Checkpoint + 1, Right);
+  }
+}
+/*  */
+
 /* Parallel search */
 int search(int* Array, int Left, int Right, int Target) {
   /* Finding the place of the target */
@@ -50,10 +74,11 @@ int main(int argc, char* argv[]) {
       if(Array[index] < Min) { Min = Array[index]; }
       if(Array[index] > Max) { Max = Array[index]; }
     }
+    QuickSort(Array, 0, Size - 1);
     Target = rand() % (Max - Min + 1) - 100;
   }
-  for (int index = 0; index < Size; index++) { MPI_Allreduce(&Array[index], &Array[index], 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD); }
-  MPI_Allreduce(&Target, &Target, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
+  for (int index = 0; index < Size; index++) { MPI_Allreduce(&Array[index], &Array[index], 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD); }
+  MPI_Allreduce(&Target, &Target, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
   /* Calculating */
   int Result = search(Array, 0, Size - 1, Target);

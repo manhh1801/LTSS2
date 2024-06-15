@@ -50,23 +50,20 @@ int main(int argc, char* argv[]) {
   int* Array = (int*)calloc(Size, sizeof(int));
   if(ProcessID == 0) {
     srand(time(NULL));
-    int Min = 100, Max = -100;
-    for (int index = 0; index < Size; index++) {
-      Array[index] = rand() % 201 - 100;
-      if(Array[index] < Min) { Min = Array[index]; }
-      if(Array[index] > Max) { Max = Array[index]; }
-    }
+    for (int index = 0; index < Size; index++) { Array[index] = rand() % 201 - 100; }
   }
-  for (int index = 0; index < Size; index++) { MPI_Allreduce(&Array[index], &Array[index], 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD); }
+  for (int index = 0; index < Size; index++) { MPI_Allreduce(&Array[index], &Array[index], 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD); }
+  if(ProcessID == 0) {
+    printf("\n");
+    printf(">> Array:");
+    for(int index = 0; index < Size; index++) { printf(" %d", Array[index]); }
+  }
 
   /* Calculating */
   Sort(Array, Size);
 
   /* Printing out result */
   if(ProcessID == 0) {
-    printf("\n");
-    printf(">> Array:");
-    for(int index = 0; index < Size; index++) { printf(" %d", Array[index]); }
     printf("\n");
     printf(">> Result:");
     for(int index = 0; index < Size; index++) { printf(" %d", Array[index]); }
