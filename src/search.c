@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
       if(Array[index] > Max) { Max = Array[index]; }
     }
     sort(Array, 0, Size - 1);
-    Target = rand() % (Max - Min + 1) - Min;
+    Target = rand() % (Max - Min + 1) + Min;
   }
   for (int index = 0; index < Size; index++) { MPI_Allreduce(&Array[index], &Array[index], 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD); }
   MPI_Allreduce(&Target, &Target, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
