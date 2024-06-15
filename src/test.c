@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 
 void swap(int* First, int* Second) {
   int Temp = *First;
@@ -23,12 +25,29 @@ void QuickSort(int* Array, int Left, int Right) {
 }
 
 int main() {
-  int Size = 8;
-  int Array[] = {4,2,8,9,3,11,6,10};
-  QuickSort(Array, 0, 7);
-  for(int index = 0; index < Size; index++) {
+  // Set the seed for the random number generator
+  srand(time(NULL));
+
+  // Generate a random array
+  int Size = 10;
+  int Array[Size];
+  int Min = 100, Max = -100;
+  for (int index = 0; index < Size; index++) {
+    Array[index] = rand() % 201 - 100;
+    if(Array[index] < Min) { Min = Array[index]; }
+    if(Array[index] > Max) { Max = Array[index]; }
+  }
+  QuickSort(Array, 0, Size - 1);
+
+  // Generate a random number within the range of the array
+  int Value = rand() % (Max - Min + 1) - 100;
+
+  // Print the array and the chosen number
+  printf("Array:");
+  for (int index = 0; index < Size; index++) {
     printf(" %d", Array[index]);
   }
-  printf("\n");
+  printf("\nValue: %d\n", Value);
+
   return 0;
 }

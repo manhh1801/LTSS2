@@ -1,13 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
-// #include "../lib/mpi.h"
 #include <mpi.h>
+#include <time.h>
 
 /* Process information */
 int ProcessID, Processes;
 /*  */
 
-/*  */
+/* Odd-even search */
 void swap(int* First, int* Second) {
   int Temp = *First;
   *First = *Second;
@@ -16,17 +16,12 @@ void swap(int* First, int* Second) {
 
 void Sort(int* Array, int Size) {
   for(int index1 = 0; index1 < Size; index1++) {
-    // int First, Second;
-    // if(index1 % 2 == 0) { First = 2 * ProcessID; }
-    // else {
-    //   if(Size % 2 == 0) { First = 2 * ProcessID - 1; }
-    //   else { First = 2 * ProcessID + 1; }
-    // }
+    /* Defining the choke points */
     int First = index1 % 2 == 0 ? 2 * ProcessID : Size % 2 == 0 ? 2 * ProcessID - 1: 2 * ProcessID + 1, Second = First + 1;
+
+    /* Preprocessing the array */
     for(int index2 = 0; index2 < Size; index2++) {
-      if(index1 % 2 == 0) {
-        if(Size % 2 != 0) { if(index2 == Size - 1) { continue; } }
-      }
+      if(index1 % 2 == 0) { if(Size % 2 != 0) { if(index2 == Size - 1) { continue; } } }
       else {
         if(Size % 2 == 0) { if(index2 == 0 || index2 == Size - 1) { continue; } }
         else { if(index2 == 0) { continue; } }
@@ -34,14 +29,10 @@ void Sort(int* Array, int Size) {
       if(index2 == First || index2 == Second) { continue; }
       Array[index2] = 0;
     }
-    if(index1 % 2 != 0 && Size % 2 == 0) {
-      if(ProcessID == 0) continue;
-      // if(ProcessID != 0) {
-      //   if(Array[First] > Array[Second]) { swap(&Array[First], &Array[Second]); }
-      // }
-    }
+
+    /* Processing */
+    if(index1 % 2 != 0 && Size % 2 == 0) { if(ProcessID != 0) { if(Array[First] > Array[Second]) { swap(&Array[First], &Array[Second]); } } }
     else { if(Array[First] > Array[Second]) { swap(&Array[First], &Array[Second]); } }
-    // if(Array[First] > Array[Second]) { swap(&Array[First], &Array[Second]); }
     for(int index2 = 0; index2 < Size; index2++) { MPI_Allreduce(&Array[index2], &Array[index2], 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD); }
   }
 }
@@ -55,12 +46,18 @@ int main(int argc, char* argv[]) {
   MPI_Comm_size(MPI_COMM_WORLD, &Processes);
 
   /* Shared memory */
-  int Size = 8;
-  int Sample[] = {4,2,8,9,3,11,6,10};
+  int Size = atoi(argv[1]);
   int* Array = (int*)calloc(Size, sizeof(int));
-  for(int index = 0; index < Size; index++) {
-    Array[index] = Sample[index];
+  if(ProcessID == 0) {
+    srand(time(NULL));
+    int Min = 100, Max = -100;
+    for (int index = 0; index < Size; index++) {
+      Array[index] = rand() % 201 - 100;
+      if(Array[index] < Min) { Min = Array[index]; }
+      if(Array[index] > Max) { Max = Array[index]; }
+    }
   }
+  for (int index = 0; index < Size; index++) { MPI_Allreduce(&Array[index], &Array[index], 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD); }
 
   /* Calculating */
   Sort(Array, Size);
@@ -69,9 +66,10 @@ int main(int argc, char* argv[]) {
   if(ProcessID == 0) {
     printf("\n");
     printf(">> Array:");
-    for(int index = 0; index < Size; index++) {
-      printf(" %d", Array[index]);
-    }
+    for(int index = 0; index < Size; index++) { printf(" %d", Array[index]); }
+    printf("\n");
+    printf(">> Result:");
+    for(int index = 0; index < Size; index++) { printf(" %d", Array[index]); }
     printf("\n");
   }
 
