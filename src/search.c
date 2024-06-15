@@ -9,16 +9,18 @@ int ProcessID, Processes;
 
 int ParallelSearch(int* Array, int Left, int Right, int Target) {
   if(Right - Left <= Processes) {
-    int Result = 0;
-    if(Array[ProcessID + Left] <= Target && Target < Array[ProcessID + Left + 1]) { Result = ProcessID; }
-    MPI_Allreduce(&Result, &Result, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
-    return Result;
+    // int Result = 0;
+    // if(Array[ProcessID + Left] <= Target && Target < Array[ProcessID + Left + 1]) { Result = ProcessID + Left; }
+    // MPI_Allreduce(&Result, &Result, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
+    // return Result;
+    return 0;
   }
   else {
     int Distances = Right - Left;
     int quotient = Distances / Processes, remainder = Distances % Processes;
-    Left = quotient * ProcessID + (ProcessID < remainder ? ProcessID : remainder);
+    Left += quotient * ProcessID + (ProcessID < remainder ? ProcessID : remainder);
     Right = Left + quotient + (ProcessID < remainder ? 1 : 0);
+    printf("[%d]: %d - %d", ProcessID, Left, Right);
     if(!(Array[Left] <= Target && Target < Array[Right])) { Left = 0; Right = 0; }
     MPI_Allreduce(&Left, &Left, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
     MPI_Allreduce(&Right, &Right, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
@@ -48,7 +50,7 @@ int main(int argc, char* argv[]) {
   // MPI_Allreduce(&Result, &Result, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
 
   /* Calculating */
-  int Result = ParallelSearch(Array, 0, Size, Target);
+  int Result = ParallelSearch(Array, 0, Size - 1, Target);
 
   /* Printing out result */
   if(ProcessID == 0) {
