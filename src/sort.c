@@ -16,40 +16,40 @@ void swap(int* First, int* Second) {
 
 void Sort(int* Array, int Size) {
   for(int index1 = 0; index1 < Size; index1++) {
-    if(ProcessID == 0) printf("Loop %d:\n", index1 + 1);
-    // int First, Second;
-    // if(index1 % 2 == 0) { First = 2 * ProcessID; }
-    // else {
-    //   if(Size % 2 == 0) { First = 2 * ProcessID - 1; }
-    //   else { First = 2 * ProcessID + 1; }
-    // }
-    // Second = First + 1;
-    // for(int index2 = 0; index2 < Size; index2++) {
-    //   if(index1 % 2) {
-    //     if(Size % 2) {}
-    //     else {
-    //       if(index2 == Size - 1) continue;
-    //     }
-    //   }
-    //   else {
-    //     if(Size % 2) {
-    //       if(index2 == 0 || index2 == Size - 1) continue;
-    //     }
-    //     else {
-    //       if(index2 == 0) continue;
-    //     }
-    //   }
-    //   if(index2 == First || index2 == Second) continue;
-    //   Array[index2] = 0;
-    // }
+    // if(ProcessID == 0) printf("Loop %d:\n", index1 + 1);
+    int First, Second;
+    if(index1 % 2 == 0) { First = 2 * ProcessID; }
+    else {
+      if(Size % 2 == 0) { First = 2 * ProcessID - 1; }
+      else { First = 2 * ProcessID + 1; }
+    }
+    Second = First + 1;
+    for(int index2 = 0; index2 < Size; index2++) {
+      if(index1 % 2) {
+        if(Size % 2) {}
+        else {
+          if(index2 == Size - 1) continue;
+        }
+      }
+      else {
+        if(Size % 2) {
+          if(index2 == 0 || index2 == Size - 1) continue;
+        }
+        else {
+          if(index2 == 0) continue;
+        }
+      }
+      if(index2 == First || index2 == Second) continue;
+      Array[index2] = 0;
+    }
     // printf("  [%d]:", ProcessID);
     // for(int index = 0; index < Size; index++) {
     //   printf(" %d", Array[index]);
     // }
     // printf("\n");
-    // if(Array[First] > Array[Second]) { swap(&Array[First], &Array[Second]); }
-    // else { Array[First] = 0; Array[Second] = 0; }
-    // MPI_Allreduce(Array, Array, Size, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
+    if(Array[First] > Array[Second]) { swap(&Array[First], &Array[Second]); }
+    else { Array[First] = 0; Array[Second] = 0; }
+    MPI_Allreduce(Array, Array, Size, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
   }
 }
 /*  */
