@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-// #include "../lib/mpi.h"
-#include <mpi.h>
+#include "../lib/mpi.h"
+// #include <mpi.h>
 
 /* Process information */
 int ProcessID, Processes;
@@ -16,7 +16,7 @@ void swap(int* First, int* Second) {
 
 void Sort(int* Array, int Size) {
   for(int index1 = 0; index1 < Size; index1++) {
-    // if(ProcessID == 0) printf("Loop %d:\n", index1 + 1);
+    if(ProcessID == 0) printf("Loop %d:\n", index1 + 1);
     int First, Second;
     if(index1 % 2 == 0) { First = 2 * ProcessID; }
     else {
@@ -42,14 +42,17 @@ void Sort(int* Array, int Size) {
       if(index2 == First || index2 == Second) continue;
       Array[index2] = 0;
     }
-    // printf("  [%d]:", ProcessID);
-    // for(int index = 0; index < Size; index++) {
-    //   printf(" %d", Array[index]);
-    // }
-    // printf("\n");
+    printf("  [%d]:", ProcessID);
+    for(int index = 0; index < Size; index++) {
+      printf(" %d", Array[index]);
+    }
+    printf("\n");
     if(Array[First] > Array[Second]) { swap(&Array[First], &Array[Second]); }
     else { Array[First] = 0; Array[Second] = 0; }
-    MPI_Allreduce(Array, Array, Size, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
+    for(int index2 = 0; index2 < Size; index2++) {
+      MPI_Allreduce(&Array[index2], &Array[index2], 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
+    }
+    // MPI_Allreduce(Array, Array, Size, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
   }
 }
 /*  */
