@@ -15,10 +15,10 @@ int ParallelSearch(int* Array, int Left, int Right, int Target) {
     return Result;
   }
   else {
-    int Tasks = Right - Left + 1;
-    int quotient = Tasks / Processes, remainder = Tasks % Processes;
+    int Distances = Right - Left;
+    int quotient = Distances / Processes, remainder = Distances % Processes;
     Left = quotient * ProcessID + (ProcessID < remainder ? ProcessID : remainder);
-    Right = Left + (ProcessID < remainder ? quotient : quotient - 1);
+    Right = Left + quotient + (ProcessID < remainder ? 1 : 0);
     if(!(Array[Left] <= Target && Target < Array[Right])) { Left = 0; Right = 0; }
     MPI_Allreduce(&Left, &Left, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
     MPI_Allreduce(&Right, &Right, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
