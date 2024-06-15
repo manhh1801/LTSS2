@@ -1,13 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
-// #include "../lib/mpi.h"
 #include <mpi.h>
 
 /* Process information */
 int ProcessID, Processes;
 /*  */
 
-int ParallelSearch(int* Array, int Left, int Right, int Target) {
+/* Parallel Search */
+int Search(int* Array, int Left, int Right, int Target) {
   if(Right - Left <= Processes) {
     int Result = 0;
     if(ProcessID + Left < Right) {
@@ -29,9 +29,10 @@ int ParallelSearch(int* Array, int Left, int Right, int Target) {
     }
     MPI_Allreduce(&Left, &Left, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
     MPI_Allreduce(&Right, &Right, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
-    return ParallelSearch(Array, Left, Right, Target);
+    return Search(Array, Left, Right, Target);
   }
 }
+/*  */
 
 /* Entry procedure */
 int main(int argc, char* argv[]) {
@@ -49,7 +50,7 @@ int main(int argc, char* argv[]) {
   int Target = atoi(argv[2]);
 
   /* Calculating */
-  int Result = ParallelSearch(Array, 0, Size - 1, Target);
+  int Result = Search(Array, 0, Size - 1, Target);
 
   /* Printing out result */
   if(ProcessID == 0) {
