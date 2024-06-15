@@ -1,20 +1,21 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <mpi.h>
+// #include <mpi.h>
 #include <time.h>
+#include "../lib/mpi.h"
 
 /* Process information */
 int ProcessID, Processes;
 /*  */
 
-/* Odd-even search */
+/* Odd-even sort */
 void swap(int* First, int* Second) {
   int Temp = *First;
   *First = *Second;
   *Second = Temp;
 }
 
-void Sort(int* Array, int Size) {
+void sort(int* Array, int Size) {
   for(int index1 = 0; index1 < Size; index1++) {
     /* Defining the choke points */
     int First = index1 % 2 == 0 ? 2 * ProcessID : Size % 2 == 0 ? 2 * ProcessID - 1: 2 * ProcessID + 1, Second = First + 1;
@@ -27,7 +28,7 @@ void Sort(int* Array, int Size) {
         else { if(index2 == 0) { continue; } }
       }
       if(index2 == First || index2 == Second) { continue; }
-      Array[index2] = 0;
+      Array[index2] = -101;
     }
 
     /* Processing */
@@ -60,7 +61,7 @@ int main(int argc, char* argv[]) {
   }
 
   /* Calculating */
-  Sort(Array, Size);
+  sort(Array, Size);
 
   /* Printing out result */
   if(ProcessID == 0) {

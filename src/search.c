@@ -14,7 +14,7 @@ void swap(int* First, int* Second) {
   *Second = Temp;
 }
 
-void QuickSort(int* Array, int Left, int Right) {
+void sort(int* Array, int Left, int Right) {
   int Pivot, Checkpoint;
   if(Left < Right) {
     Pivot = Array[Left];
@@ -25,8 +25,8 @@ void QuickSort(int* Array, int Left, int Right) {
       }
     }
     swap(&Array[Checkpoint], &Array[Left]);
-    QuickSort(Array, Left, Checkpoint - 1);
-    QuickSort(Array, Checkpoint + 1, Right);
+    sort(Array, Left, Checkpoint - 1);
+    sort(Array, Checkpoint + 1, Right);
   }
 }
 /*  */
@@ -74,8 +74,8 @@ int main(int argc, char* argv[]) {
       if(Array[index] < Min) { Min = Array[index]; }
       if(Array[index] > Max) { Max = Array[index]; }
     }
-    QuickSort(Array, 0, Size - 1);
-    Target = rand() % (Max - Min + 1) - 100;
+    sort(Array, 0, Size - 1);
+    Target = rand() % (Max - Min + 1) - Min;
   }
   for (int index = 0; index < Size; index++) { MPI_Allreduce(&Array[index], &Array[index], 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD); }
   MPI_Allreduce(&Target, &Target, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
