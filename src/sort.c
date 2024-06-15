@@ -15,9 +15,9 @@ void swap(int* First, int* Second) {
 }
 
 void Sort(int* Array, int Size) {
-  {
-    int index1 = 0;
-  // for(int index1 = 0; index1 < Size; index1++) {
+  // {
+  //   int index1 = 0;
+  for(int index1 = 0; index1 < Size; index1++) {
     int First, Second;
     if(index1 % 2 == 0) { First = 2 * ProcessID; }
     else {
@@ -27,14 +27,14 @@ void Sort(int* Array, int Size) {
     Second = First + 1;
     printf("  [%d]: %d - %d", ProcessID, First, Second);
     for(int index2 = 0; index2 < Size; index2++) {
-      if(index1 % 2) {
-        if(Size % 2) {}
+      if(index1 % 2 == 0) {
+        if(Size % 2 == 0) {}
         else {
           if(index2 == Size - 1) continue;
         }
       }
       else {
-        if(Size % 2) {
+        if(Size % 2 == 0) {
           if(index2 == 0 || index2 == Size - 1) continue;
         }
         else {
