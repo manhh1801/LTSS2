@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "../lib/mpi.h"
-// #include <mpi.h>
+// #include "../lib/mpi.h"
+#include <mpi.h>
 
 /* Process information */
 int ProcessID, Processes;
@@ -15,50 +15,34 @@ void swap(int* First, int* Second) {
 }
 
 void Sort(int* Array, int Size) {
-  {
-  int index1 = 0;
-  // for(int index1 = 0; index1 < Size; index1++) {
-    int First, Second;
-    if(index1 % 2 == 0) { First = 2 * ProcessID; }
-    else {
-      if(Size % 2 == 0) { First = 2 * ProcessID - 1; }
-      else { First = 2 * ProcessID + 1; }
-    }
-    Second = First + 1;
+  for(int index1 = 0; index1 < Size; index1++) {
+    // int First, Second;
+    // if(index1 % 2 == 0) { First = 2 * ProcessID; }
+    // else {
+    //   if(Size % 2 == 0) { First = 2 * ProcessID - 1; }
+    //   else { First = 2 * ProcessID + 1; }
+    // }
+    int First = index1 % 2 == 0 ? 2 * ProcessID : Size % 2 == 0 ? 2 * ProcessID - 1: 2 * ProcessID + 1, Second = First + 1;
     for(int index2 = 0; index2 < Size; index2++) {
       if(index1 % 2 == 0) {
-        if(Size % 2 == 0) {}
-        else {
-          if(index2 == Size - 1) continue;
-        }
+        if(Size % 2 != 0) { if(index2 == Size - 1) { continue; } }
       }
       else {
-        if(Size % 2 == 0) {
-          if(index2 == 0 || index2 == Size - 1) continue;
-        }
-        else {
-          if(index2 == 0) continue;
-        }
+        if(Size % 2 == 0) { if(index2 == 0 || index2 == Size - 1) { continue; } }
+        else { if(index2 == 0) { continue; } }
       }
-      if(index2 == First || index2 == Second) continue;
+      if(index2 == First || index2 == Second) { continue; }
       Array[index2] = 0;
     }
     if(index1 % 2 != 0 && Size % 2 == 0) {
-      // if(ProcessID == 0) continue;
-      if(ProcessID != 0) {
-        if(Array[First] > Array[Second]) { swap(&Array[First], &Array[Second]); }
-      }
+      if(ProcessID == 0) continue;
+      // if(ProcessID != 0) {
+      //   if(Array[First] > Array[Second]) { swap(&Array[First], &Array[Second]); }
+      // }
     }
-    else {
-      if(Array[First] > Array[Second]) { swap(&Array[First], &Array[Second]); }
-    }
+    else { if(Array[First] > Array[Second]) { swap(&Array[First], &Array[Second]); } }
     // if(Array[First] > Array[Second]) { swap(&Array[First], &Array[Second]); }
-    printf("  [%d]:", ProcessID);
-    for(int index2 = 0; index2 < Size; index2++) {
-      printf(" %d", Array[index2]);
-    }
-    printf("\n");
-    MPI_Allreduce(Array, Array, Size, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
+    for(int index2 = 0; index2 < Size; index2++) { MPI_Allreduce(&Array[index2], &Array[index2], 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD); }
   }
 }
 /*  */
