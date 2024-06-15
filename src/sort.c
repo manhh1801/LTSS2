@@ -43,7 +43,7 @@ void Sort(int* Array, int Size) {
       if(index2 == First || index2 == Second) continue;
       Array[index2] = 0;
     }
-    if(index1 % 2 ==0 && Size % 2 == 0) {
+    if(index1 % 2 != 0 && Size % 2 == 0) {
       // if(ProcessID == 0) continue;
       if(ProcessID != 0) {
         if(Array[First] > Array[Second]) { swap(&Array[First], &Array[Second]); }
@@ -54,11 +54,11 @@ void Sort(int* Array, int Size) {
     }
     // if(Array[First] > Array[Second]) { swap(&Array[First], &Array[Second]); }
     printf("  [%d]:", ProcessID);
-    for(int index = 0; index < Size; index++) {
-      printf(" %d", Array[index]);
+    for(int index2 = 0; index2 < Size; index2++) {
+      printf(" %d", Array[index2]);
     }
     printf("\n");
-    // MPI_Allreduce(Array, Array, Size, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
+    MPI_Allreduce(Array, Array, Size, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
   }
 }
 /*  */
@@ -72,7 +72,11 @@ int main(int argc, char* argv[]) {
 
   /* Shared memory */
   int Size = 8;
-  int Array[] = {4,2,8,9,3,11,6,10};
+  int Sample[] = {4,2,8,9,3,11,6,10};
+  int* Array = (int*)calloc(Size, sizeof(int));
+  for(int index = 0; index < Size; index++) {
+    Array[index] = Sample[index];
+  }
 
   /* Calculating */
   Sort(Array, Size);
