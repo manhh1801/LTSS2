@@ -43,7 +43,16 @@ void Sort(int* Array, int Size) {
       if(index2 == First || index2 == Second) continue;
       Array[index2] = 0;
     }
-    if(Array[First] > Array[Second]) { swap(&Array[First], &Array[Second]); }
+    if(index1 % 2 ==0 && Size % 2 == 0) {
+      // if(ProcessID == 0) continue;
+      if(ProcessID != 0) {
+        if(Array[First] > Array[Second]) { swap(&Array[First], &Array[Second]); }
+      }
+    }
+    else {
+      if(Array[First] > Array[Second]) { swap(&Array[First], &Array[Second]); }
+    }
+    // if(Array[First] > Array[Second]) { swap(&Array[First], &Array[Second]); }
     printf("  [%d]:", ProcessID);
     for(int index = 0; index < Size; index++) {
       printf(" %d", Array[index]);
