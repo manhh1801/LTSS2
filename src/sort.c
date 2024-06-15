@@ -25,7 +25,6 @@ void Sort(int* Array, int Size) {
       else { First = 2 * ProcessID + 1; }
     }
     Second = First + 1;
-    printf("  [%d]: %d - %d", ProcessID, First, Second);
     for(int index2 = 0; index2 < Size; index2++) {
       if(index1 % 2 == 0) {
         if(Size % 2 == 0) {}
@@ -44,13 +43,9 @@ void Sort(int* Array, int Size) {
       if(index2 == First || index2 == Second) continue;
       Array[index2] = 0;
     }
-    // printf("  [%d]:", ProcessID);
-    // for(int index = 0; index < Size; index++) {
-    //   printf(" %d", Array[index]);
-    // }
-    // printf("\n");
     if(Array[First] > Array[Second]) { swap(&Array[First], &Array[Second]); }
-    else { Array[First] = 0; Array[Second] = 0; }
+
+
     for(int index2 = 0; index2 < Size; index2++) {
       MPI_Allreduce(&Array[index2], &Array[index2], 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
     }
