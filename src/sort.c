@@ -1,8 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-// #include <mpi.h>
+#include <mpi.h>
 #include <time.h>
-#include "../lib/mpi.h"
 
 /* Process information */
 int ProcessID, Processes;
