@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-// #include "../lib/mpi.h"
-#include <mpi.h>
+#include "../lib/mpi.h"
+// #include <mpi.h>
 
 /* Process information */
 int ProcessID, Processes;
@@ -15,9 +15,9 @@ void swap(int* First, int* Second) {
 }
 
 void Sort(int* Array, int Size) {
-  // {
-  //   int index1 = 0;
-  for(int index1 = 0; index1 < Size; index1++) {
+  {
+  int index1 = 0;
+  // for(int index1 = 0; index1 < Size; index1++) {
     int First, Second;
     if(index1 % 2 == 0) { First = 2 * ProcessID; }
     else {
@@ -49,10 +49,6 @@ void Sort(int* Array, int Size) {
       printf(" %d", Array[index]);
     }
     printf("\n");
-
-    for(int index2 = 0; index2 < Size; index2++) {
-      MPI_Allreduce(&Array[index2], &Array[index2], 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
-    }
     // MPI_Allreduce(Array, Array, Size, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
   }
 }
