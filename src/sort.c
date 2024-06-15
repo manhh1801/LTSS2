@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
   MPI_Comm_size(MPI_COMM_WORLD, &Processes);
 
   /* Shared memory */
-  int Size = 2 * Proceses + rand() % 2;
+  int Size = 2 * Processes + rand() % 2;
   int* Array = (int*)calloc(Size, sizeof(int));
   if(ProcessID == 0) {
     srand(time(NULL));
