@@ -77,6 +77,7 @@ int main(int argc, char* argv[]) {
     printf("\n");
     printf(">> Array:");
     for(int index = 0; index < Size; index++) { printf(" %d", Array[index]); }
+    printf("\n");
   }
 
   /* Calculating */
@@ -87,6 +88,7 @@ int main(int argc, char* argv[]) {
     printf("\n");
     printf(">> Result:");
     for(int index = 0; index < Size; index++) { printf(" %d", Array[index]); }
+    printf("\n");
     printf("\n");
   }
 
