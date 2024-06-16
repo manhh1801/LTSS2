@@ -9,7 +9,7 @@ int ProcessID, Processes;
 /*  */
 
 /* Random integer */
-void random(int* Array, int Size, int LowerBound, int UpperBound, int* Min, int* Max) {
+void Random(int* Array, int Size, int LowerBound, int UpperBound, int* Min, int* Max) {
   *Min = UpperBound, *Max = LowerBound;
   int Range = UpperBound - LowerBound + 1;
   for(int index = ProcessID; index < Size; index += Processes) {
@@ -17,6 +17,7 @@ void random(int* Array, int Size, int LowerBound, int UpperBound, int* Min, int*
     if(Min != NULL && Array[index] < *Min) { *Min = Array[index]; }
     if(Max != NULL && Array[index] > *Max) { *Max = Array[index]; }
   }
+  for(int index = 0; index < Size; index++) { MPI_Allreduce(&Array[index], &Array[index], 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD); }
 }
 /*  */
 
@@ -34,7 +35,7 @@ int main(int argc, char* argv[]) {
 
   /* Processing */
   int Min = 0, Max = 0;
-  random(Array, Size, -Bound, Bound, &Min, &Max);
+  Random(Array, Size, -Bound, Bound, &Min, &Max);
 
   /* Printing out result */
   if(ProcessID == 0) {
