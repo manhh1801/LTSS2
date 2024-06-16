@@ -8,12 +8,14 @@ int ProcessID, Processes;
 /*  */
 
 /* Random integer */
+/* Random integer */
 void Random(int* Array, int Size, int LowerBound, int UpperBound, int* Min, int* Max) {
   /* Setting seed for randomizing */
   srand(time(NULL) + ProcessID * Size / Processes + UpperBound - LowerBound);
 
   /* Processing */
-  *Min = UpperBound, *Max = LowerBound;
+  if(Min != NULL) { *Min = UpperBound; }
+  if(Max != NULL) { *Max = LowerBound; }
   int Range = UpperBound - LowerBound + 1;
   for(int index = ProcessID; index < Size; index += Processes) {
     Array[index] = rand() % Range + LowerBound;
@@ -21,6 +23,8 @@ void Random(int* Array, int Size, int LowerBound, int UpperBound, int* Min, int*
     if(Max != NULL && Array[index] > *Max) { *Max = Array[index]; }
   }
   for(int index = 0; index < Size; index++) { MPI_Allreduce(&Array[index], &Array[index], 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD); }
+  if(Min != NULL) { MPI_Allreduce(Min, Min, 1, MPI_INT, MPI_MIN, MPI_COMM_WORLD); }
+  if(Max != NULL) { MPI_Allreduce(Max, Max, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD); }
 }
 /*  */
 
@@ -85,7 +89,8 @@ int main(int argc, char* argv[]) {
   int Bound = atoi(argv[2]);
   int Min = 0, Max = 0;
   Random(Array, Size, -Bound, Bound, &Min, &Max);
-  int Target = atoi(argv[3]);
+  int Target = 0;
+  Random(&Target, 1, Min, Max, NULL, NULL);
 
   /* Calculating */
   int Result = search(Array, 0, Size - 1, Target);

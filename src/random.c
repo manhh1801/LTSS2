@@ -13,7 +13,8 @@ void Random(int* Array, int Size, int LowerBound, int UpperBound, int* Min, int*
   srand(time(NULL) + ProcessID * Size / Processes + UpperBound - LowerBound);
 
   /* Processing */
-  *Min = UpperBound, *Max = LowerBound;
+  if(Min != NULL) { *Min = UpperBound; }
+  if(Max != NULL) { *Max = LowerBound; }
   int Range = UpperBound - LowerBound + 1;
   for(int index = ProcessID; index < Size; index += Processes) {
     Array[index] = rand() % Range + LowerBound;
