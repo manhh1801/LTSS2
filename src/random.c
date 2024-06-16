@@ -1,8 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include "../lib/mpi.h"
-// #include <mpi.h>
+#include <mpi.h>
 
 /* Process information */
 int ProcessID, Processes;
@@ -22,6 +21,8 @@ void Random(int* Array, int Size, int LowerBound, int UpperBound, int* Min, int*
     if(Max != NULL && Array[index] > *Max) { *Max = Array[index]; }
   }
   for(int index = 0; index < Size; index++) { MPI_Allreduce(&Array[index], &Array[index], 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD); }
+  if(Min != NULL) { MPI_Allreduce(Min, Min, 1, MPI_INT, MPI_MIN, MPI_COMM_WORLD); }
+  if(Max != NULL) { MPI_Allreduce(Max, Max, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD); }
 }
 /*  */
 
