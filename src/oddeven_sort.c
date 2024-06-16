@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <mpi.h>
 #include <time.h>
+#include <mpi.h>
 
 /* Process information */
 int ProcessID, Processes;
@@ -14,7 +14,7 @@ void swap(int* First, int* Second) {
   *Second = Temp;
 }
 
-void sort(int* Array, int Size) {
+void oddeven_sort(int* Array, int Size) {
   for(int index1 = 0; index1 < Size; index1++) {
     /* Defining the choke points */
     int First = index1 % 2 == 0 ? 2 * ProcessID : Size % 2 == 0 ? 2 * ProcessID - 1: 2 * ProcessID + 1, Second = First + 1;
@@ -50,7 +50,7 @@ int main(int argc, char* argv[]) {
   int* Array = (int*)calloc(Size, sizeof(int));
   if(ProcessID == 0) {
     srand(time(NULL));
-    for (int index = 0; index < Size; index++) { Array[index] = rand() % 201 - 100; }
+    for(int index = 0; index < Size; index++) { Array[index] = rand() % 201 - 100; }
   }
   for (int index = 0; index < Size; index++) { MPI_Allreduce(&Array[index], &Array[index], 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD); }
   if(ProcessID == 0) {
@@ -60,7 +60,7 @@ int main(int argc, char* argv[]) {
   }
 
   /* Calculating */
-  sort(Array, Size);
+  oddeven_sort(Array, Size);
 
   /* Printing out result */
   if(ProcessID == 0) {

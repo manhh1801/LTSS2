@@ -8,7 +8,7 @@ void swap(int* First, int* Second) {
   *Second = Temp;
 }
 
-void QuickSort(int* Array, int Left, int Right) {
+void quick_sort(int* Array, int Left, int Right) {
   int Pivot, Checkpoint;
   if(Left < Right) {
     Pivot = Array[Left];
@@ -19,35 +19,57 @@ void QuickSort(int* Array, int Left, int Right) {
       }
     }
     swap(&Array[Checkpoint], &Array[Left]);
-    QuickSort(Array, Left, Checkpoint - 1);
-    QuickSort(Array, Checkpoint + 1, Right);
+    quick_sort(Array, Left, Checkpoint - 1);
+    quick_sort(Array, Checkpoint + 1, Right);
   }
+}
+
+int merge_sort(int* Array ,int* Array1, int Size1, int* Array2, int Size2) {
+  int Size = Size1 + Size2;
+  int index1 = 0, index2 = 0;
+  for(int index = 0; index < Size; index++) {
+    if(index1 == Size1) {
+      Array[index] = Array2[index2++];
+      continue;
+    }
+    if(index2 == Size2) {
+      Array[index] = Array1[index1++];
+      continue;
+    }
+    if(Array1[index1] < Array2[index2]) { Array[index] = Array1[index1++]; }
+    else { Array[index] = Array2[index2++]; }
+  }
+  return Size;
 }
 
 int main() {
   // Set the seed for the random number generator
   srand(time(NULL));
 
-  // Generate a random array
-  int Size = 10;
-  int Array[Size];
-  int Min = 100, Max = -100;
-  for (int index = 0; index < Size; index++) {
-    Array[index] = rand() % 201 - 100;
-    if(Array[index] < Min) { Min = Array[index]; }
-    if(Array[index] > Max) { Max = Array[index]; }
-  }
-  QuickSort(Array, 0, Size - 1);
+  // Generate random arrays
+  int Size1 = 10;
+  int Array1[Size1];
+  for(int index1 = 0; index1 < Size1; index1++) { Array1[index1] = rand() % 201 - 100; }
+  quick_sort(Array1, 0, Size1 - 1);
+  int Size2 = 10;
+  int Array2[Size2];
+  for(int index2 = 0; index2 < Size2; index2++) { Array2[index2] = rand() % 201 - 100; }
+  quick_sort(Array2, 0, Size2 - 1);
 
-  // Generate a random number within the range of the array
-  int Value = rand() % (Max - Min + 1) - 100;
+  // Initialize result array
+  int* Array = (int*)calloc(Size1 + Size2, sizeof(int));
+  int Size = merge_sort(Array, Array1, Size1, Array2, Size2);
 
-  // Print the array and the chosen number
+  // Print the arrays
+  printf("Array1:");
+  for (int index1 = 0; index1 < Size1; index1++) { printf(" %d", Array1[index1]); }
+  printf("\n");
+  printf("Array2:");
+  for (int index2 = 0; index2 < Size2; index2++) { printf(" %d", Array2[index2]); }
+  printf("\n");
   printf("Array:");
-  for (int index = 0; index < Size; index++) {
-    printf(" %d", Array[index]);
-  }
-  printf("\nValue: %d\n", Value);
+  for (int index = 0; index < Size; index++) { printf(" %d", Array[index]); }
+  printf("\n");
 
   return 0;
 }
