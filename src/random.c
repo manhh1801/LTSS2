@@ -10,6 +10,10 @@ int ProcessID, Processes;
 
 /* Random integer */
 void Random(int* Array, int Size, int LowerBound, int UpperBound, int* Min, int* Max) {
+  /* Setting seed for randomizing */
+  srand(time(NULL));
+
+  /* Processing */
   *Min = UpperBound, *Max = LowerBound;
   int Range = UpperBound - LowerBound + 1;
   for(int index = ProcessID; index < Size; index += Processes) {

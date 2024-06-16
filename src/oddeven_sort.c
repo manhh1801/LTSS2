@@ -1,10 +1,28 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <mpi.h>
+// #include <mpi.h>
+#include "../lib/mpi.h"
 
 /* Process information */
 int ProcessID, Processes;
+/*  */
+
+/* Random integer */
+void Random(int* Array, int Size, int LowerBound, int UpperBound, int* Min, int* Max) {
+  /* Setting seed for randomizing */
+  srand(time(NULL));
+
+  /* Processing */
+  *Min = UpperBound, *Max = LowerBound;
+  int Range = UpperBound - LowerBound + 1;
+  for(int index = ProcessID; index < Size; index += Processes) {
+    Array[index] = rand() % Range + LowerBound;
+    if(Min != NULL && Array[index] < *Min) { *Min = Array[index]; }
+    if(Max != NULL && Array[index] > *Max) { *Max = Array[index]; }
+  }
+  for(int index = 0; index < Size; index++) { MPI_Allreduce(&Array[index], &Array[index], 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD); }
+}
 /*  */
 
 /* Odd-even sort */
@@ -14,7 +32,7 @@ void swap(int* First, int* Second) {
   *Second = Temp;
 }
 
-void oddeven_sort(int* Array, int Size) {
+void OddEvenSort(int* Array, int Size, int Bound) {
   for(int index1 = 0; index1 < Size; index1++) {
     /* Defining the choke points */
     int First = index1 % 2 == 0 ? 2 * ProcessID : Size % 2 == 0 ? 2 * ProcessID - 1: 2 * ProcessID + 1, Second = First + 1;
@@ -27,7 +45,7 @@ void oddeven_sort(int* Array, int Size) {
         else { if(index2 == 0) { continue; } }
       }
       if(index2 == First || index2 == Second) { continue; }
-      Array[index2] = -101;
+      Array[index2] = -Bound;
     }
 
     /* Processing */
@@ -48,19 +66,18 @@ int main(int argc, char* argv[]) {
   /* Shared memory */
   int Size = 2 * Processes + rand() % 2;
   int* Array = (int*)calloc(Size, sizeof(int));
-  if(ProcessID == 0) {
-    srand(time(NULL));
-    for(int index = 0; index < Size; index++) { Array[index] = rand() % 201 - 100; }
-  }
-  for (int index = 0; index < Size; index++) { MPI_Allreduce(&Array[index], &Array[index], 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD); }
+  int Bound = atoi(argv[1]);
+  int Min = 0, Max = 0;
+  Random(Array, Size, -Bound, Bound, &Min, &Max);
   if(ProcessID == 0) {
     printf("\n");
     printf(">> Array:");
     for(int index = 0; index < Size; index++) { printf(" %d", Array[index]); }
+    printf("\n");
   }
 
   /* Calculating */
-  oddeven_sort(Array, Size);
+  OddEvenSort(Array, Size, Bound);
 
   /* Printing out result */
   if(ProcessID == 0) {
