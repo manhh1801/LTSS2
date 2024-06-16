@@ -8,7 +8,6 @@ int ProcessID, Processes;
 /*  */
 
 /* Random integer */
-/* Random integer */
 void Random(int* Array, int Size, int LowerBound, int UpperBound, int* Min, int* Max) {
   /* Setting seed for randomizing */
   srand(time(NULL) + ProcessID * Size / Processes + UpperBound - LowerBound);
