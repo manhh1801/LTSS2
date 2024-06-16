@@ -8,7 +8,6 @@ int ProcessID, Processes;
 /*  */
 
 /* Random integer */
-/* Random integer */
 void Random(int* Array, int Size, int LowerBound, int UpperBound, int* Min, int* Max) {
   /* Setting seed for randomizing */
   srand(time(NULL) + ProcessID * Size / Processes + UpperBound - LowerBound);
@@ -35,7 +34,7 @@ void swap(int* First, int* Second) {
   *Second = Temp;
 }
 
-void sort(int* Array, int Left, int Right) {
+void QuickSort(int* Array, int Left, int Right) {
   int Pivot, Checkpoint;
   if(Left < Right) {
     Pivot = Array[Left];
@@ -46,14 +45,14 @@ void sort(int* Array, int Left, int Right) {
       }
     }
     swap(&Array[Checkpoint], &Array[Left]);
-    sort(Array, Left, Checkpoint - 1);
-    sort(Array, Checkpoint + 1, Right);
+    QuickSort(Array, Left, Checkpoint - 1);
+    QuickSort(Array, Checkpoint + 1, Right);
   }
 }
 /*  */
 
 /* Parallel search */
-int search(int* Array, int Left, int Right, int Target) {
+int Search(int* Array, int Left, int Right, int Target) {
   /* Finding the place of the target */
   if(Right - Left <= Processes) {
     int Result = 0;
@@ -71,7 +70,7 @@ int search(int* Array, int Left, int Right, int Target) {
     if(!(Array[Left] <= Target && Target <= Array[Right])) { Left = 0, Right = 0; }
     MPI_Allreduce(&Left, &Left, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
     MPI_Allreduce(&Right, &Right, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
-    return search(Array, Left, Right, Target);
+    return Search(Array, Left, Right, Target);
   }
 }
 /*  */
@@ -93,7 +92,7 @@ int main(int argc, char* argv[]) {
   Random(&Target, 1, Min, Max, NULL, NULL);
 
   /* Calculating */
-  int Result = search(Array, 0, Size - 1, Target);
+  int Result = Search(Array, 0, Size - 1, Target);
 
   /* Printing out result */
   if(ProcessID == 0) {
