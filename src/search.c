@@ -7,25 +7,6 @@
 int ProcessID, Processes;
 /*  */
 
-/* Random integer */
-void Random(int* Array, int Size, int LowerBound, int UpperBound, int* Min, int* Max) {
-  /* Setting seed for randomizing */
-  srand(time(NULL) + ProcessID * Size / Processes + UpperBound - LowerBound);
-
-  /* Processing */
-  *Min = UpperBound, *Max = LowerBound;
-  int Range = UpperBound - LowerBound + 1;
-  for(int index = ProcessID; index < Size; index += Processes) {
-    Array[index] = rand() % Range + LowerBound;
-    if(Min != NULL && Array[index] < *Min) { *Min = Array[index]; }
-    if(Max != NULL && Array[index] > *Max) { *Max = Array[index]; }
-  }
-  for(int index = 0; index < Size; index++) { MPI_Allreduce(&Array[index], &Array[index], 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD); }
-  if(Min != NULL) { MPI_Allreduce(Min, Min, 1, MPI_INT, MPI_MIN, MPI_COMM_WORLD); }
-  if(Max != NULL) { MPI_Allreduce(Max, Max, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD); }
-}
-/*  */
-
 /* Quick sort */
 void swap(int* First, int* Second) {
   int Temp = *First;
@@ -85,10 +66,19 @@ int main(int argc, char* argv[]) {
   int Size = atoi(argv[1]);
   int* Array = (int*)calloc(Size, sizeof(int));
   int Target = 0;
-  int Bound = atoi(argv[2]);
-  int Min = 0, Max = 0;
-  Random(Array, Size, -Bound, Bound, &Min, &Max);
-  Random(&Target, 1, Min, Max, NULL, NULL);
+  if(ProcessID == 0) {
+    srand(time(NULL));
+    int Min = 100, Max = -100;
+    for (int index = 0; index < Size; index++) {
+      Array[index] = rand() % 201 - 100;
+      if(Array[index] < Min) { Min = Array[index]; }
+      if(Array[index] > Max) { Max = Array[index]; }
+    }
+    sort(Array, 0, Size - 1);
+    Target = rand() % (Max - Min + 1) + Min;
+  }
+  for (int index = 0; index < Size; index++) { MPI_Allreduce(&Array[index], &Array[index], 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD); }
+  MPI_Allreduce(&Target, &Target, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
   /* Calculating */
   int Result = search(Array, 0, Size - 1, Target);
