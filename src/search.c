@@ -85,10 +85,11 @@ int main(int argc, char* argv[]) {
   /* Shared memory */
   int Size = atoi(argv[1]);
   int* Array = (int*)calloc(Size, sizeof(int));
+  int Target = 0;
   int Bound = atoi(argv[2]);
   int Min = 0, Max = 0;
   Random(Array, Size, -Bound, Bound, &Min, &Max);
-  int Target = 0;
+  QuickSort(Array, 0, Size - 1);
   Random(&Target, 1, Min, Max, NULL, NULL);
 
   /* Calculating */
