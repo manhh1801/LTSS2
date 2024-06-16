@@ -30,21 +30,37 @@ void Random(int* Array, int Size, int LowerBound, int UpperBound, int* Min, int*
   if(ProcessID == 0) {
     TimeFlag1 = MPI_Wtime();
   }
-  if(Min != NULL) { *Min = UpperBound; }
-  if(Max != NULL) { *Max = LowerBound; }
+  if(Min != NULL) {
+    *Min = UpperBound;
+  }
+  if(Max != NULL) {
+    *Max = LowerBound;
+  }
   int Range = UpperBound - LowerBound + 1;
   for(int index = ProcessID; index < Size; index += Processes) {
     Array[index] = rand() % Range + LowerBound;
-    if(Min != NULL && Array[index] < *Min) { *Min = Array[index]; }
-    if(Max != NULL && Array[index] > *Max) { *Max = Array[index]; }
+    if(Min != NULL && Array[index] < *Min) {
+      *Min = Array[index];
+    }
+    if(Max != NULL && Array[index] > *Max) {
+      *Max = Array[index];
+    }
   }
   if(ProcessID == 0) {
     TimeFlag2 = MPI_Wtime();
     TotalTimeWithoutComp += TimeFlag2 - TimeFlag1;
   }
-  for(int index = 0; index < Size; index++) { MPI_Allreduce(&Array[index], &Array[index], 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD); }
-  if(Min != NULL) { MPI_Allreduce(Min, Min, 1, MPI_INT, MPI_MIN, MPI_COMM_WORLD); }
-  if(Max != NULL) { MPI_Allreduce(Max, Max, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD); }
+
+  /* Merging data */
+  for(int index = 0; index < Size; index++) {
+    MPI_Allreduce(&Array[index], &Array[index], 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+  }
+  if(Min != NULL) {
+    MPI_Allreduce(Min, Min, 1, MPI_INT, MPI_MIN, MPI_COMM_WORLD);
+  }
+  if(Max != NULL) {
+    MPI_Allreduce(Max, Max, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
+  }
 }
 /*  */
 
@@ -80,7 +96,11 @@ int Search(int* Array, int Left, int Right, int Target) {
       TimeFlag1 = MPI_Wtime();
     }
     int Result = 0;
-    if(ProcessID + Left < Right) { if(Array[ProcessID + Left] <= Target && Target <= Array[ProcessID + Left + 1]) { Result = ProcessID + Left; } }
+    if(ProcessID + Left < Right) {
+      if(Array[ProcessID + Left] <= Target && Target <= Array[ProcessID + Left + 1]) {
+        Result = ProcessID + Left;
+      }
+    }
     if(ProcessID == 0) {
       TimeFlag2 = MPI_Wtime();
       TotalTimeWithoutComp += TimeFlag2 - TimeFlag1;
@@ -98,7 +118,9 @@ int Search(int* Array, int Left, int Right, int Target) {
     int quotient = Distances / Processes, remainder = Distances % Processes;
     Left += quotient * ProcessID + (ProcessID < remainder ? ProcessID : remainder);
     Right = Left + quotient + (ProcessID < remainder ? 1 : 0);
-    if(!(Array[Left] <= Target && Target <= Array[Right])) { Left = 0, Right = 0; }
+    if(!(Array[Left] <= Target && Target <= Array[Right])) {
+      Left = 0, Right = 0;
+    }
     if(ProcessID == 0) {
       TimeFlag2 = MPI_Wtime();
       TotalTimeWithoutComp += TimeFlag2 - TimeFlag1;
@@ -154,9 +176,11 @@ int main(int argc, char* argv[]) {
   /* Printing out result */
   if(ProcessID == 0) {
     printf("\n");
-    printf(">> Array:");
-    for(int index = 0; index < Size; index++) { printf(" %d", Array[index]); }
-    printf("\n");
+    // printf(">> Array:");
+    // for(int index = 0; index < Size; index++) {
+    //   printf(" %d", Array[index]);
+    // }
+    // printf("\n");
     printf(">> Target: %d\n", Target);
     printf(">> Result = %d\n", Result);
     printf(">> Total time: %f(s), without comp: %f(s)\n", TotalTime, TotalTimeWithoutComp);
