@@ -1,8 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-// #include <mpi.h>
-#include "../lib/mpi.h"
+#include <mpi.h>
 
 /* Process information */
 int ProcessID, Processes;
@@ -31,9 +30,9 @@ void Random(int* Array, int Size, int LowerBound, int UpperBound, int* Min, int*
 
 /* Odd-even sort */
 void swap(int* First, int* Second) {
-  int Temp = *First;
+  int temp = *First;
   *First = *Second;
-  *Second = Temp;
+  *Second = temp;
 }
 
 void OddEvenSort(int* Array, int Size, int Bound) {
@@ -42,18 +41,22 @@ void OddEvenSort(int* Array, int Size, int Bound) {
     int First = index1 % 2 == 0 ? 2 * ProcessID : Size % 2 == 0 ? 2 * ProcessID - 1: 2 * ProcessID + 1, Second = First + 1;
 
     /* Preprocessing the array */
-    int temp[Size];
+    int* temp = (int*)calloc(Size, sizeof(int));
     temp[First] = Array[First], temp[Second] = Array[Second];
     if(index1 % 2 == 0) { if(Size % 2 != 0) { if(ProcessID == 0) { temp[Size - 1]  = Array[Size - 1]; } } }
     else {
       if(Size % 2 == 0) { if(ProcessID == 1) { temp[0] = Array[0], temp[Size - 1]  = Array[Size - 1]; }}
-      else { if(ProcessID == 0) {  temp[0] = Array[0]; } }
+      else { if(ProcessID == 0) { temp[0] = Array[0]; } }
     }
 
     /* Processing */
     if(index1 % 2 != 0 && Size % 2 == 0) { if(ProcessID != 0) { if(Array[First] > Array[Second]) { swap(&temp[First], &temp[Second]); } } }
     else { if(Array[First] > Array[Second]) { swap(&temp[First], &temp[Second]); } }
     for(int index2 = 0; index2 < Size; index2++) { MPI_Allreduce(&temp[index2], &Array[index2], 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD); }
+
+    /* Freeing memory */
+    free(temp);
+    temp = NULL;
   }
 }
 /*  */
