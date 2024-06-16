@@ -70,8 +70,7 @@ int main(int argc, char* argv[]) {
   int Size = 2 * Processes + rand() % 2;
   int* Array = (int*)calloc(Size, sizeof(int));
   int Bound = atoi(argv[1]);
-  int Min = 0, Max = 0;
-  Random(Array, Size, -Bound, Bound, &Min, &Max);
+  Random(Array, Size, -Bound, Bound, NULL, NULL);
   if(ProcessID == 0) {
     printf("\n");
     printf(">> Array:");
