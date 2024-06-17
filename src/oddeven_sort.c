@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include "../lib/mpi.h"
+#include <mpi.h>
 
 /* Process information */
 int ProcessID, Processes;
@@ -71,19 +71,18 @@ void swap(int* First, int* Second) {
   *Second = temp;
 }
 
-void OddEvenSort(int* Array, int Size, int Bound) {
+void OddEvenSort(int* Array, int Size) {
   for(int index1 = 0; index1 < Size; index1++) {
     if(ProcessID == 0) {
       TimeFlag1 = MPI_Wtime();
     }
     int* Tasks = NULL;
     int TaskSize = 0;
-    for(int index2 = ProcessID; index2 < Size / 2; index2 += Processes) {
+    for(int index2 = ProcessID; index2 < Size / 2 - (index1 % 2 != 0 && Size % 2 == 0 ? 1 : 0); index2 += Processes) {
       Tasks = (int*)realloc(Tasks, (TaskSize + 1) * sizeof(int));
-      Tasks[TaskSize] = index1 % 2 == 0 ? 2 * index2 : Size % 2 == 0 ? 2 * index2 - 1: 2 * index2 + 1;
+      Tasks[TaskSize] = 2 * index2 + index1 % 2 == 0 ? 0 : 1;
       TaskSize += 1;
     }
-    // int First = index1 % 2 == 0 ? 2 * ProcessID : Size % 2 == 0 ? 2 * ProcessID - 1: 2 * ProcessID + 1, Second = First + 1;
 
     int* temp = (int*)calloc(Size, sizeof(int));
     for(int task = 0; task < TaskSize; task++) {
@@ -91,12 +90,11 @@ void OddEvenSort(int* Array, int Size, int Bound) {
       temp[First] = Array[First], temp[Second] = Array[Second];
       if(index1 % 2 == 0) { if(Size % 2 != 0) { if(ProcessID == 0) { temp[Size - 1]  = Array[Size - 1]; } } }
       else {
-        if(Size % 2 == 0) { if(ProcessID == 1) { temp[0] = Array[0], temp[Size - 1]  = Array[Size - 1]; }}
+        if(Size % 2 == 0) { if(ProcessID == 0) { temp[0] = Array[0], temp[Size - 1]  = Array[Size - 1]; }}
         else { if(ProcessID == 0) { temp[0] = Array[0]; } }
       }
 
-      if(index1 % 2 != 0 && Size % 2 == 0) { if(ProcessID != 0) { if(temp[First] > temp[Second]) { swap(&temp[First], &temp[Second]); } } }
-      else { if(temp[First] > temp[Second]) { swap(&temp[First], &temp[Second]); } }
+      if(temp[First] > temp[Second]) { swap(&temp[First], &temp[Second]); }
     }
 
     if(ProcessID == 0) {
@@ -125,9 +123,9 @@ int main(int argc, char* argv[]) {
   if(ProcessID == 0) {
     TimeFlag1 = MPI_Wtime();
   }
-  int Size = 2 * Processes + rand() % 2;
+  int Size = atoi(argv[1]);
   int* Array = (int*)calloc(Size, sizeof(int));
-  int Bound = atoi(argv[1]);
+  int Bound = atoi(argv[2]);
   if(ProcessID == 0) {
     TimeFlag2 = MPI_Wtime();
     TotalTimeWithoutComp += TimeFlag2 - TimeFlag1;
@@ -141,7 +139,7 @@ int main(int argc, char* argv[]) {
   }
 
   /* Calculating */
-  OddEvenSort(Array, Size, Bound);
+  OddEvenSort(Array, Size);
   if(ProcessID == 0) {
     EndTime = MPI_Wtime();
     TotalTime = EndTime - StartTime;
