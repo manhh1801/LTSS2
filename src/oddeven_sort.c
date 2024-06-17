@@ -73,6 +73,7 @@ void swap(int* First, int* Second) {
 
 void OddEvenSort(int* Array, int Size) {
   for(int index1 = 0; index1 < Size; index1++) {
+    /* Dividing tasks */
     if(ProcessID == 0) {
       TimeFlag1 = MPI_Wtime();
     }
@@ -80,30 +81,51 @@ void OddEvenSort(int* Array, int Size) {
     int TaskSize = 0;
     for(int index2 = ProcessID; index2 < Size / 2 - (index1 % 2 != 0 && Size % 2 == 0 ? 1 : 0); index2 += Processes) {
       Tasks = (int*)realloc(Tasks, (TaskSize + 1) * sizeof(int));
-      Tasks[TaskSize] = 2 * index2 + index1 % 2 == 0 ? 0 : 1;
+      Tasks[TaskSize] = 2 * index2 + (index1 % 2 == 0 ? 0 : 1);
       TaskSize += 1;
     }
 
+    /* Processing */
     int* temp = (int*)calloc(Size, sizeof(int));
     for(int task = 0; task < TaskSize; task++) {
       int First = Tasks[task], Second = First + 1;
       temp[First] = Array[First], temp[Second] = Array[Second];
-      if(index1 % 2 == 0) { if(Size % 2 != 0) { if(ProcessID == 0) { temp[Size - 1]  = Array[Size - 1]; } } }
+      if(index1 % 2 == 0) {
+        if(Size % 2 != 0) {
+          if(ProcessID == 0) {
+            temp[Size - 1]  = Array[Size - 1];
+          }
+        }
+      }
       else {
-        if(Size % 2 == 0) { if(ProcessID == 0) { temp[0] = Array[0], temp[Size - 1]  = Array[Size - 1]; }}
-        else { if(ProcessID == 0) { temp[0] = Array[0]; } }
+        if(Size % 2 == 0) {
+          if(ProcessID == 0) {
+            temp[0] = Array[0], temp[Size - 1]  = Array[Size - 1];
+          }
+        }
+        else {
+          if(ProcessID == 0) {
+            temp[0] = Array[0];
+          }
+        }
       }
 
-      if(temp[First] > temp[Second]) { swap(&temp[First], &temp[Second]); }
+      if(temp[First] > temp[Second]) {
+        swap(&temp[First], &temp[Second]);
+      }
     }
-
     if(ProcessID == 0) {
       TimeFlag2 = MPI_Wtime();
       TotalTimeWithoutComp += TimeFlag2 - TimeFlag1;
     }
-    for(int index2 = 0; index2 < Size; index2++) { MPI_Allreduce(&temp[index2], &Array[index2], 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD); }
-    free(temp);
 
+    /* Merging data */
+    for(int index2 = 0; index2 < Size; index2++) {
+      MPI_Allreduce(&temp[index2], &Array[index2], 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+    }
+
+    /* Freeing memory */
+    free(temp);
     free(Tasks);
   }
 }
@@ -133,9 +155,11 @@ int main(int argc, char* argv[]) {
   Random(Array, Size, -Bound, Bound, NULL, NULL);
   if(ProcessID == 0) {
     printf("\n");
-    printf(">> Array:");
-    for(int index = 0; index < Size; index++) { printf(" %d", Array[index]); }
-    printf("\n");
+    // printf(">> Array:");
+    // for(int index = 0; index < Size; index++) {
+    //   printf(" %d", Array[index]);
+    // }
+    // printf("\n");
   }
 
   /* Calculating */
@@ -147,10 +171,12 @@ int main(int argc, char* argv[]) {
 
   /* Printing out result */
   if(ProcessID == 0) {
-    printf("\n");
-    printf(">> Result:");
-    for(int index = 0; index < Size; index++) { printf(" %d", Array[index]); }
-    printf("\n");
+    // printf("\n");
+    // printf(">> Result:");
+    // for(int index = 0; index < Size; index++) {
+    //   printf(" %d", Array[index]);
+    // }
+    // printf("\n");
     printf(">> Total time: %f(s), without comp: %f(s)\n", TotalTime, TotalTimeWithoutComp);
     printf("\n");
   }
