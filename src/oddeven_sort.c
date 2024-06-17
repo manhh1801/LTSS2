@@ -7,23 +7,60 @@
 int ProcessID, Processes;
 /*  */
 
+/* Time */
+double TotalTime = 0;
+double TotalTimeWithoutComp = 0;
+double StartTime = 0, EndTime = 0;
+double TimeFlag1 = 0, TimeFlag2 = 0;
+/*  */
+
 /* Random integer */
 void Random(int* Array, int Size, int LowerBound, int UpperBound, int* Min, int* Max) {
   /* Setting seed for randomizing */
+  if(ProcessID == 0) {
+    TimeFlag1 = MPI_Wtime();
+  }
   srand(time(NULL) + ProcessID * Size / Processes + UpperBound - LowerBound);
+  if(ProcessID == 0) {
+    TimeFlag2 = MPI_Wtime();
+    TotalTimeWithoutComp += TimeFlag2 - TimeFlag1;
+  }
 
   /* Processing */
-  if(Min != NULL) { *Min = UpperBound; }
-  if(Max != NULL) { *Max = LowerBound; }
+  if(ProcessID == 0) {
+    TimeFlag1 = MPI_Wtime();
+  }
+  if(Min != NULL) {
+    *Min = UpperBound;
+  }
+  if(Max != NULL) {
+    *Max = LowerBound;
+  }
   int Range = UpperBound - LowerBound + 1;
   for(int index = ProcessID; index < Size; index += Processes) {
     Array[index] = rand() % Range + LowerBound;
-    if(Min != NULL && Array[index] < *Min) { *Min = Array[index]; }
-    if(Max != NULL && Array[index] > *Max) { *Max = Array[index]; }
+    if(Min != NULL && Array[index] < *Min) {
+      *Min = Array[index];
+    }
+    if(Max != NULL && Array[index] > *Max) {
+      *Max = Array[index];
+    }
   }
-  for(int index = 0; index < Size; index++) { MPI_Allreduce(&Array[index], &Array[index], 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD); }
-  if(Min != NULL) { MPI_Allreduce(Min, Min, 1, MPI_INT, MPI_MIN, MPI_COMM_WORLD); }
-  if(Max != NULL) { MPI_Allreduce(Max, Max, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD); }
+  if(ProcessID == 0) {
+    TimeFlag2 = MPI_Wtime();
+    TotalTimeWithoutComp += TimeFlag2 - TimeFlag1;
+  }
+
+  /* Merging data */
+  for(int index = 0; index < Size; index++) {
+    MPI_Allreduce(&Array[index], &Array[index], 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+  }
+  if(Min != NULL) {
+    MPI_Allreduce(Min, Min, 1, MPI_INT, MPI_MIN, MPI_COMM_WORLD);
+  }
+  if(Max != NULL) {
+    MPI_Allreduce(Max, Max, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
+  }
 }
 /*  */
 
@@ -37,6 +74,9 @@ void swap(int* First, int* Second) {
 void OddEvenSort(int* Array, int Size, int Bound) {
   for(int index1 = 0; index1 < Size; index1++) {
     /* Defining the choke points */
+    if(ProcessID == 0) {
+      TimeFlag1 = MPI_Wtime();
+    }
     int First = index1 % 2 == 0 ? 2 * ProcessID : Size % 2 == 0 ? 2 * ProcessID - 1: 2 * ProcessID + 1, Second = First + 1;
 
     /* Preprocessing the array */
@@ -51,6 +91,10 @@ void OddEvenSort(int* Array, int Size, int Bound) {
     /* Processing */
     if(index1 % 2 != 0 && Size % 2 == 0) { if(ProcessID != 0) { if(Array[First] > Array[Second]) { swap(&temp[First], &temp[Second]); } } }
     else { if(Array[First] > Array[Second]) { swap(&temp[First], &temp[Second]); } }
+    if(ProcessID == 0) {
+      TimeFlag2 = MPI_Wtime();
+      TotalTimeWithoutComp += TimeFlag2 - TimeFlag1;
+    }
     for(int index2 = 0; index2 < Size; index2++) { MPI_Allreduce(&temp[index2], &Array[index2], 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD); }
 
     /* Freeing memory */
@@ -68,9 +112,19 @@ int main(int argc, char* argv[]) {
   MPI_Comm_size(MPI_COMM_WORLD, &Processes);
 
   /* Shared memory */
+  if(ProcessID == 0) {
+    StartTime = MPI_Wtime();
+  }
+  if(ProcessID == 0) {
+    TimeFlag1 = MPI_Wtime();
+  }
   int Size = 2 * Processes + rand() % 2;
   int* Array = (int*)calloc(Size, sizeof(int));
   int Bound = atoi(argv[1]);
+  if(ProcessID == 0) {
+    TimeFlag2 = MPI_Wtime();
+    TotalTimeWithoutComp += TimeFlag2 - TimeFlag1;
+  }
   Random(Array, Size, -Bound, Bound, NULL, NULL);
   if(ProcessID == 0) {
     printf("\n");
@@ -81,6 +135,10 @@ int main(int argc, char* argv[]) {
 
   /* Calculating */
   OddEvenSort(Array, Size, Bound);
+  if(ProcessID == 0) {
+    EndTime = MPI_Wtime();
+    TotalTime = EndTime - StartTime;
+  }
 
   /* Printing out result */
   if(ProcessID == 0) {
@@ -88,6 +146,7 @@ int main(int argc, char* argv[]) {
     printf(">> Result:");
     for(int index = 0; index < Size; index++) { printf(" %d", Array[index]); }
     printf("\n");
+    printf(">> Total time: %f(s), without comp: %f(s)\n", TotalTime, TotalTimeWithoutComp);
     printf("\n");
   }
 
