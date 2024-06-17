@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <mpi.h>
+#include "../lib/mpi.h"
 
 /* Process information */
 int ProcessID, Processes;
@@ -73,33 +73,40 @@ void swap(int* First, int* Second) {
 
 void OddEvenSort(int* Array, int Size, int Bound) {
   for(int index1 = 0; index1 < Size; index1++) {
-    /* Defining the choke points */
     if(ProcessID == 0) {
       TimeFlag1 = MPI_Wtime();
     }
-    int First = index1 % 2 == 0 ? 2 * ProcessID : Size % 2 == 0 ? 2 * ProcessID - 1: 2 * ProcessID + 1, Second = First + 1;
+    int* Tasks = NULL;
+    int TaskSize = 0;
+    for(int index2 = ProcessID; index2 < Size / 2; index2 += Processes) {
+      Tasks = (int*)realloc(Tasks, (TaskSize + 1) * sizeof(int));
+      Tasks[TaskSize] = index1 % 2 == 0 ? 2 * index2 : Size % 2 == 0 ? 2 * index2 - 1: 2 * index2 + 1;
+      TaskSize += 1;
+    }
+    // int First = index1 % 2 == 0 ? 2 * ProcessID : Size % 2 == 0 ? 2 * ProcessID - 1: 2 * ProcessID + 1, Second = First + 1;
 
-    /* Preprocessing the array */
     int* temp = (int*)calloc(Size, sizeof(int));
-    temp[First] = Array[First], temp[Second] = Array[Second];
-    if(index1 % 2 == 0) { if(Size % 2 != 0) { if(ProcessID == 0) { temp[Size - 1]  = Array[Size - 1]; } } }
-    else {
-      if(Size % 2 == 0) { if(ProcessID == 1) { temp[0] = Array[0], temp[Size - 1]  = Array[Size - 1]; }}
-      else { if(ProcessID == 0) { temp[0] = Array[0]; } }
+    for(int task = 0; task < TaskSize; task++) {
+      int First = Tasks[task], Second = First + 1;
+      temp[First] = Array[First], temp[Second] = Array[Second];
+      if(index1 % 2 == 0) { if(Size % 2 != 0) { if(ProcessID == 0) { temp[Size - 1]  = Array[Size - 1]; } } }
+      else {
+        if(Size % 2 == 0) { if(ProcessID == 1) { temp[0] = Array[0], temp[Size - 1]  = Array[Size - 1]; }}
+        else { if(ProcessID == 0) { temp[0] = Array[0]; } }
+      }
+
+      if(index1 % 2 != 0 && Size % 2 == 0) { if(ProcessID != 0) { if(temp[First] > temp[Second]) { swap(&temp[First], &temp[Second]); } } }
+      else { if(temp[First] > temp[Second]) { swap(&temp[First], &temp[Second]); } }
     }
 
-    /* Processing */
-    if(index1 % 2 != 0 && Size % 2 == 0) { if(ProcessID != 0) { if(Array[First] > Array[Second]) { swap(&temp[First], &temp[Second]); } } }
-    else { if(Array[First] > Array[Second]) { swap(&temp[First], &temp[Second]); } }
     if(ProcessID == 0) {
       TimeFlag2 = MPI_Wtime();
       TotalTimeWithoutComp += TimeFlag2 - TimeFlag1;
     }
     for(int index2 = 0; index2 < Size; index2++) { MPI_Allreduce(&temp[index2], &Array[index2], 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD); }
-
-    /* Freeing memory */
     free(temp);
-    temp = NULL;
+
+    free(Tasks);
   }
 }
 /*  */
